@@ -3,6 +3,8 @@ import { Client, GatewayIntentBits } from "discord.js";
 import type { Interaction } from "discord.js";
 import mongoose from "mongoose";
 import { DISCORD_TOKEN, MONGODB_URI } from './config';
+import { execute as showAll } from './commands/showAll';
+import { execute as daily } from './commands/daily';
 
 
 
@@ -26,14 +28,26 @@ mongoose.connect(MONGODB_URI).then(() => {
 
 client.on("interactionCreate", async (interaction: Interaction) => {
   if (!interaction.isChatInputCommand()) return;
-  if (interaction.commandName === "ping") {
-    await interaction.reply("Pong! 🏓");
-  }
-  else if (interaction.commandName === "whoami") {
-    await interaction.reply("I am Eleet, your coding companion! I provide users with daily leetcode challenges so that they can become elite! 🤖");
-  } else {
-    await interaction.reply({ content: "Unknown command", ephemeral: true });
+
+  const { commandName } = interaction;
+
+  switch (commandName) {
+    case "ping":
+      await interaction.reply("Pong! 🏓");
+      break;
+    case "whoami":
+      await interaction.reply("I am Eleet, your coding companion! I provide users with daily leetcode challenges so that they can become elite! 🤖");
+      break;
+    case "allquestions":
+      await showAll(interaction);
+      break;
+    case "daily":
+      await daily(interaction);
+      break;
+    default:
+      await interaction.reply({ content: "Unknown command", ephemeral: true });
+      break;
   }
 });
 
-client.login(process.env.DISCORD_TOKEN);
+client.login(DISCORD_TOKEN);

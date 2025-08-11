@@ -1,4 +1,3 @@
-import "dotenv/config";
 import mongoose from "mongoose";
 import { MONGODB_URI } from './config';
 import { Question } from "./models/Question";

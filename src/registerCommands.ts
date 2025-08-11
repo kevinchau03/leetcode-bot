@@ -7,7 +7,9 @@ const devGuildId = process.env.DISCORD_GUILD_ID!;
 
 const commands = [
   new SlashCommandBuilder().setName("ping").setDescription("Replies with Pong!"),
-  new SlashCommandBuilder().setName("whoami").setDescription("What is Eleet?")
+  new SlashCommandBuilder().setName("whoami").setDescription("What is Eleet?"),
+  new SlashCommandBuilder().setName("allquestions").setDescription("Get all questions."),
+  new SlashCommandBuilder().setName("daily").setDescription("Show today's daily LeetCode question.")
 ].map(c => c.toJSON());
 
 const rest = new REST({ version: "10" }).setToken(token);
