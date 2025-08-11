@@ -1,18 +1,26 @@
 {
   "name": "leetcode-bot",
   "version": "1.0.0",
+  "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "ts-node src/index.ts",
+    "register": "ts-node src/registerCommands.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "test:mongo": "ts-node src/testMongo.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "dayjs": "^1.11.13",
     "discord.js": "^14.21.0",
     "dotenv": "^17.2.1",
-    "mongoose": "^8.17.1"
+    "mongodb": "^6.18.0",
+    "mongoose": "^8.17.1",
+    "node-cron": "^4.2.1"
   },
   "devDependencies": {
     "@types/mongoose": "^5.11.96",
