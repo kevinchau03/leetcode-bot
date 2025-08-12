@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "type": "commonjs",
   "main": "index.js",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "dev": "ts-node src/index.ts",
     "register": "ts-node src/registerCommands.ts",
