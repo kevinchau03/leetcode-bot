@@ -1,3 +1,11 @@
+import * as http from "http";
+const port = process.env.PORT;
+http
+  .createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    res.end("OK");
+  })
+  .listen(port, () => console.log(`Keepalive server on :${port}`));
 import "dotenv/config";
 import { Client, GatewayIntentBits } from "discord.js";
 import type { Interaction } from "discord.js";
@@ -7,15 +15,7 @@ import { execute as showAll } from './commands/showAll';
 import { execute as daily } from './commands/daily';
 import { execute as profile } from './commands/profile';
 import { startDailyCron } from "./cron/daily";
-import * as http from "http";
 
-const port = process.env.PORT || 3000;
-http
-  .createServer((_req, res) => {
-    res.writeHead(200, { "Content-Type": "text/plain" });
-    res.end("OK");
-  })
-  .listen(port, () => console.log(`Keepalive server on :${port}`));
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds], // enough for slash commands
