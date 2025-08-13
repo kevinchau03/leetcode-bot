@@ -5,8 +5,9 @@ import mongoose from "mongoose";
 import { DISCORD_TOKEN, MONGODB_URI } from './config';
 import { execute as showAll } from './commands/showAll';
 import { execute as daily } from './commands/daily';
-
-
+import { execute as profile } from './commands/profile';
+import { startDailyCron } from "./cron/daily";
+import { DAILY_CHANNEL_ID } from "./config";
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds], // enough for slash commands
@@ -14,6 +15,12 @@ const client = new Client({
 
 client.once("ready", () => {
   console.log(`✅ Logged in as ${client.user?.tag}`);
+  if (!DAILY_CHANNEL_ID) {
+    console.error("❌ DAILY_CHANNEL_ID environment variable is not defined.");
+  } else {
+    startDailyCron(client, DAILY_CHANNEL_ID);
+    console.log("Daily cron job started");
+  }
 });
 
 // Connect to MongoDB
@@ -43,6 +50,9 @@ client.on("interactionCreate", async (interaction: Interaction) => {
       break;
     case "daily":
       await daily(interaction);
+      break;
+    case "profile":
+      await profile(interaction);
       break;
     default:
       await interaction.reply({ content: "Unknown command", ephemeral: true });

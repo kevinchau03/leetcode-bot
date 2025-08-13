@@ -1,5 +1,10 @@
-import { ChatInputCommandInteraction } from "discord.js";
+import { SlashCommandBuilder, ChatInputCommandInteraction } from "discord.js";
 import { Question } from "../models/Question";
+
+export const data = new SlashCommandBuilder()
+  .setName("allquestions")
+  .setDescription("Show all questions");
+
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply();

@@ -1,4 +1,4 @@
-import { ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
+import { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } from "discord.js";
 import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import tz from "dayjs/plugin/timezone";
@@ -10,6 +10,10 @@ dayjs.extend(tz);
 const TZ = process.env.TZ || "America/Toronto";
 const DIFF_COLOR: Record<string, number> = { Easy: 0x2ecc71, Medium: 0xf1c40f, Hard: 0xe74c3c };
 
+export const data = new SlashCommandBuilder()
+  .setName("daily")
+  .setDescription("Show today's daily LeetCode question.");
+  
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply();
