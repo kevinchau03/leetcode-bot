@@ -7,11 +7,7 @@ import { execute as showAll } from './commands/showAll';
 import { execute as daily } from './commands/daily';
 import { execute as profile } from './commands/profile';
 import { startDailyCron } from "./cron/daily";
-import http from "http";
-
-const client = new Client({
-  intents: [GatewayIntentBits.Guilds], // enough for slash commands
-});
+import * as http from "http";
 
 const port = process.env.PORT || 3000;
 http
@@ -20,6 +16,10 @@ http
     res.end("OK");
   })
   .listen(port, () => console.log(`Keepalive server on :${port}`));
+
+const client = new Client({
+  intents: [GatewayIntentBits.Guilds], // enough for slash commands
+});
 
 client.once("ready", () => {
   console.log(`✅ Logged in as ${client.user?.tag}`);
