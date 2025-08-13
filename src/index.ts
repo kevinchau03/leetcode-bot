@@ -23,6 +23,8 @@ http
 
 client.once("ready", () => {
   console.log(`✅ Logged in as ${client.user?.tag}`);
+  console.log("PORT:", process.env.PORT);
+  console.log("HEALTHCHECK:", process.env.RAILWAY_HEALTHCHECK_URL);
   if (!DAILY_CHANNEL_ID) {
     console.error("❌ DAILY_CHANNEL_ID environment variable is not defined.");
   } else {
