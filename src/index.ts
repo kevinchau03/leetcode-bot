@@ -2,16 +2,24 @@ import "dotenv/config";
 import { Client, GatewayIntentBits } from "discord.js";
 import type { Interaction } from "discord.js";
 import mongoose from "mongoose";
-import { DISCORD_TOKEN, MONGODB_URI } from './config';
+import { DISCORD_TOKEN, MONGODB_URI, DAILY_CHANNEL_ID } from './config';
 import { execute as showAll } from './commands/showAll';
 import { execute as daily } from './commands/daily';
 import { execute as profile } from './commands/profile';
 import { startDailyCron } from "./cron/daily";
-import { DAILY_CHANNEL_ID } from "./config";
+import http from "http";
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds], // enough for slash commands
 });
+
+const port = process.env.PORT || 3000;
+http
+  .createServer((_req, res) => {
+    res.writeHead(200, { "Content-Type": "text/plain" });
+    res.end("OK");
+  })
+  .listen(port, () => console.log(`Keepalive server on :${port}`));
 
 client.once("ready", () => {
   console.log(`✅ Logged in as ${client.user?.tag}`);
