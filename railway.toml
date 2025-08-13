@@ -1,8 +1,0 @@
-[service]
-name = "leetcode-bot"
-start = "node dist/index.js"
-type = "worker"
-
-[deploy.env]
-NODE_VERSION = "18"
-NPM_CONFIG_PRODUCTION = "false"
