@@ -13,7 +13,7 @@
     "start": "node dist/index.js",
     "test:mongo": "ts-node src/testMongo.ts",
     "seed:daily": "ts-node src/scripts/seed_daily.ts",
-    "start:cron": "node dist/cron/worker.js"
+    "start:cron": "node dist/cron/worker.ts"
   },
   "keywords": [],
   "author": "",
