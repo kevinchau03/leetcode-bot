@@ -1,11 +1,3 @@
-import * as http from "http";
-const port = process.env.PORT;
-http
-  .createServer((_req, res) => {
-    res.writeHead(200, { "Content-Type": "text/plain" });
-    res.end("OK");
-  })
-  .listen(port, () => console.log(`Keepalive server on :${port}`));
 import "dotenv/config";
 import { Client, GatewayIntentBits } from "discord.js";
 import type { Interaction } from "discord.js";
@@ -23,8 +15,6 @@ const client = new Client({
 
 client.once("ready", () => {
   console.log(`✅ Logged in as ${client.user?.tag}`);
-  console.log("PORT:", process.env.PORT);
-  console.log("HEALTHCHECK:", process.env.RAILWAY_HEALTHCHECK_URL);
   if (!DAILY_CHANNEL_ID) {
     console.error("❌ DAILY_CHANNEL_ID environment variable is not defined.");
   } else {
