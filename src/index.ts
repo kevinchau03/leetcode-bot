@@ -2,7 +2,7 @@ import "dotenv/config";
 import { Client, GatewayIntentBits, MessageFlags } from "discord.js";
 import type { Interaction } from "discord.js";
 import mongoose from "mongoose";
-import { DISCORD_TOKEN, MONGODB_URI } from './config';
+import { DISCORD_TOKEN, MONGODB_URI, DISCORD_CLIENT_ID, DISCORD_GUILD_ID } from './config';
 import { execute as showAll } from './commands/showAll';
 import { execute as daily } from './commands/daily';
 import { execute as profile } from './commands/profile';
@@ -20,8 +20,8 @@ async function registerCommands() {
     const { data: showAllData } = await import('./commands/showAll');
     const { data: doneData } = await import('./commands/done');
 
-    const clientId = process.env.DISCORD_CLIENT_ID;
-    const guildId = process.env.DISCORD_GUILD_ID;
+    const clientId = DISCORD_CLIENT_ID;
+    const guildId = DISCORD_GUILD_ID;
     
     console.log(`🔄 Client ID: ${clientId ? 'Present' : 'Missing'}`);
     console.log(`🔄 Guild ID: ${guildId ? 'Present' : 'Missing'}`);
