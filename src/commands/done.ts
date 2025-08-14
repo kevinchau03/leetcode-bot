@@ -19,13 +19,24 @@ export const data = new SlashCommandBuilder()
   );
 
 export async function execute(interaction: ChatInputCommandInteraction) {
-  const userId = interaction.user.id;
-  const guildId = interaction.guildId;
-  if (!guildId) {
-    await interaction.reply({ content: "This command can only be used in a server.", flags: MessageFlags.Ephemeral });
-    return;
-  }
-  let profile = await getOrCreateProfile(userId, guildId);
+  try {
+    // Check if interaction is already acknowledged
+    if (!interaction.replied && !interaction.deferred) {
+      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+    }
+    
+    const userId = interaction.user.id;
+    const guildId = interaction.guildId;
+    if (!guildId) {
+      const errorMsg = "This command can only be used in a server.";
+      if (interaction.deferred) {
+        await interaction.editReply({ content: errorMsg });
+      } else {
+        await interaction.reply({ content: errorMsg, flags: MessageFlags.Ephemeral });
+      }
+      return;
+    }
+    let profile = await getOrCreateProfile(userId, guildId);
   const tz = interaction.options.getString("tz") ?? profile.tz ?? "UTC";
   const today = dayjs().tz(tz).format("YYYY-MM-DD");
   const yesterday = dayjs().tz(tz).subtract(1, "day").format("YYYY-MM-DD");
@@ -46,7 +57,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     {
       $set: {
         tz,
-        lastCompletedDay: today,
+        lastCompletedDate: today,
         currentStreak: nextCurrent,
       },
       $max: { bestStreak: nextCurrent }
@@ -55,14 +66,37 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   );
 
   if (update) {
-    await interaction.reply({
-      content: `✅ Logged for **${today}** (${tz}). Streak: **${update.currentStreak}** (best: ${update.bestStreak}).`,
-      flags: MessageFlags.Ephemeral
-    });
+    const successMsg = `✅ Logged for **${today}** (${tz}). Streak: **${update.currentStreak}** (best: ${update.bestStreak}).`;
+    if (interaction.deferred) {
+      await interaction.editReply({ content: successMsg });
+    } else {
+      await interaction.reply({ content: successMsg, flags: MessageFlags.Ephemeral });
+    }
   } else {
-    await interaction.reply({
-      content: `❌ Failed to update your streak. Please try again later.`,
-      flags: MessageFlags.Ephemeral
-    });
+    const errorMsg = `❌ Failed to update your streak. Please try again later.`;
+    if (interaction.deferred) {
+      await interaction.editReply({ content: errorMsg });
+    } else {
+      await interaction.reply({ content: errorMsg, flags: MessageFlags.Ephemeral });
+    }
+  }
+  } catch (error) {
+    console.error("Error in done command:", error);
+    
+    // Only try to respond if it's not an expired interaction error
+    if (error && typeof error === 'object' && 'code' in error && error.code !== 10062) {
+      try {
+        const errorMsg = "An error occurred while processing your command.";
+        if (interaction.deferred && !interaction.replied) {
+          await interaction.editReply({ content: errorMsg });
+        } else if (!interaction.replied) {
+          await interaction.reply({ content: errorMsg, flags: MessageFlags.Ephemeral });
+        }
+      } catch (followUpError) {
+        console.error("Failed to send error response:", followUpError);
+      }
+    } else {
+      console.log("Interaction expired or unknown error, cannot respond");
+    }
   }
 }

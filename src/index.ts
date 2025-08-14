@@ -32,29 +32,37 @@ client.on("interactionCreate", async (interaction: Interaction) => {
   if (!interaction.isChatInputCommand()) return;
 
   const { commandName } = interaction;
+  
+  console.log(`Received command: ${commandName} from ${interaction.user.username} (${interaction.user.id})`);
+  console.log(`Interaction state - replied: ${interaction.replied}, deferred: ${interaction.deferred}`);
 
-  switch (commandName) {
-    case "ping":
-      await interaction.reply("Pong! 🏓");
-      break;
-    case "whoami":
-      await interaction.reply("I am Eleet, your coding companion! I provide users with daily leetcode challenges so that they can become elite! 🤖");
-      break;
-    case "allquestions":
-      await showAll(interaction);
-      break;
-    case "daily":
-      await daily(interaction);
-      break;
-    case "profile":
-      await profile(interaction);
-      break;
-    case "done":
-      await done(interaction);
-      break;
-    default:
-      await interaction.reply({ content: "Unknown command", flags: MessageFlags.Ephemeral });
-      break;
+  try {
+    switch (commandName) {
+      case "ping":
+        await interaction.reply("Pong! 🏓");
+        break;
+      case "whoami":
+        await interaction.reply("I am Eleet, your coding companion! I provide users with daily leetcode challenges so that they can become elite! 🤖");
+        break;
+      case "allquestions":
+        await showAll(interaction);
+        break;
+      case "daily":
+        await daily(interaction);
+        break;
+      case "profile":
+        await profile(interaction);
+        break;
+      case "done":
+        await done(interaction);
+        break;
+      default:
+        await interaction.reply({ content: "Unknown command", flags: MessageFlags.Ephemeral });
+        break;
+    }
+  } catch (error) {
+    console.error(`Error executing command ${commandName}:`, error);
+    // Error handling is now done within each command
   }
 });
 
