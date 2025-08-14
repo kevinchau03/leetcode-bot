@@ -91,57 +91,61 @@ mongoose.connect(MONGODB_URI).then(() => {
 });
 
 client.on("interactionCreate", async (interaction: Interaction) => {
-  if (!interaction.isChatInputCommand()) return;
-
-  const { commandName } = interaction;
-  
-  console.log(`Received command: ${commandName} from ${interaction.user.username} (${interaction.user.id})`);
-  console.log(`Interaction state - replied: ${interaction.replied}, deferred: ${interaction.deferred}`);
-
   try {
-    switch (commandName) {
-      case "ping":
-        await interaction.reply("Pong! 🏓");
-        break;
-      case "whoami":
-        await interaction.reply("I am Eleet, your coding companion! I provide users with daily leetcode challenges so that they can become elite! 🤖");
-        break;
-      case "allquestions":
-        await showAll(interaction);
-        break;
-      case "daily":
-        await daily(interaction);
-        break;
-      case "profile":
-        await profile(interaction);
-        break;
-      case "done":
-        await done(interaction);
-        break;
-      default:
-        // Check if interaction is still valid before responding
-        if (!interaction.replied && !interaction.deferred) {
-          try {
-            await interaction.reply({ content: "Unknown command", flags: MessageFlags.Ephemeral });
-          } catch (replyError) {
-            console.error("Failed to reply to unknown command (interaction may have expired):", replyError);
-          }
-        }
-        break;
-    }
-  } catch (error) {
-    console.error(`Error executing command ${commandName}:`, error);
+    if (!interaction.isChatInputCommand()) return;
+
+    const { commandName } = interaction;
     
-    // Try to respond to the user if possible, but don't crash if it fails
+    console.log(`Received command: ${commandName} from ${interaction.user.username} (${interaction.user.id})`);
+    console.log(`Interaction state - replied: ${interaction.replied}, deferred: ${interaction.deferred}`);
+
     try {
-      if (!interaction.replied && !interaction.deferred) {
-        await interaction.reply({ content: "An error occurred while processing your command.", flags: MessageFlags.Ephemeral });
-      } else if (interaction.deferred && !interaction.replied) {
-        await interaction.editReply({ content: "An error occurred while processing your command." });
+      switch (commandName) {
+        case "ping":
+          await interaction.reply("Pong! 🏓");
+          break;
+        case "whoami":
+          await interaction.reply("I am Eleet, your coding companion! I provide users with daily leetcode challenges so that they can become elite! 🤖");
+          break;
+        case "allquestions":
+          await showAll(interaction);
+          break;
+        case "daily":
+          await daily(interaction);
+          break;
+        case "profile":
+          await profile(interaction);
+          break;
+        case "done":
+          await done(interaction);
+          break;
+        default:
+          // Check if interaction is still valid before responding
+          if (!interaction.replied && !interaction.deferred) {
+            try {
+              await interaction.reply({ content: "bruh wtf", flags: MessageFlags.Ephemeral });
+            } catch (replyError) {
+              console.error("Failed to reply to unknown command (interaction may have expired):", replyError);
+            }
+          }
+          break;
       }
-    } catch (responseError) {
-      console.error("Could not send error response (interaction may have expired):", responseError);
+    } catch (error) {
+      console.error(`Error executing command ${commandName}:`, error);
+      
+      // Try to respond to the user if possible, but don't crash if it fails
+      try {
+        if (!interaction.replied && !interaction.deferred) {
+          await interaction.reply({ content: "An error occurred while processing your command.", flags: MessageFlags.Ephemeral });
+        } else if (interaction.deferred && !interaction.replied) {
+          await interaction.editReply({ content: "An error occurred while processing your command." });
+        }
+      } catch (responseError) {
+        console.error("Could not send error response (interaction may have expired):", responseError);
+      }
     }
+  } catch (outerError) {
+    console.error("Unhandled error in interactionCreate event:", outerError);
   }
 });
 
