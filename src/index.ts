@@ -10,38 +10,52 @@ import { execute as done } from './commands/done';
 
 // Auto-register commands on startup
 async function registerCommands() {
-  const { REST, Routes, SlashCommandBuilder } = await import("discord.js");
-  const { data: profileData } = await import('./commands/profile');
-  const { data: dailyData } = await import('./commands/daily');
-  const { data: showAllData } = await import('./commands/showAll');
-  const { data: doneData } = await import('./commands/done');
-
-  const clientId = process.env.DISCORD_CLIENT_ID!;
-  const guildId = process.env.DISCORD_GUILD_ID;
-  
-  const commands = [
-    new SlashCommandBuilder().setName("ping").setDescription("Replies with Pong!"),
-    new SlashCommandBuilder().setName("whoami").setDescription("What is Eleet?"),
-    showAllData,
-    dailyData,
-    profileData,
-    doneData
-  ].map(c => c.toJSON());
-
-  const rest = new REST({ version: "10" }).setToken(DISCORD_TOKEN);
-
   try {
+    console.log("🔄 Importing Discord.js modules...");
+    const { REST, Routes, SlashCommandBuilder } = await import("discord.js");
+    
+    console.log("🔄 Importing command data...");
+    const { data: profileData } = await import('./commands/profile');
+    const { data: dailyData } = await import('./commands/daily');
+    const { data: showAllData } = await import('./commands/showAll');
+    const { data: doneData } = await import('./commands/done');
+
+    const clientId = process.env.DISCORD_CLIENT_ID;
+    const guildId = process.env.DISCORD_GUILD_ID;
+    
+    console.log(`🔄 Client ID: ${clientId ? 'Present' : 'Missing'}`);
+    console.log(`🔄 Guild ID: ${guildId ? 'Present' : 'Missing'}`);
+    
+    if (!clientId) {
+      throw new Error("DISCORD_CLIENT_ID environment variable is missing");
+    }
+    
+    console.log("🔄 Building command array...");
+    const commands = [
+      new SlashCommandBuilder().setName("ping").setDescription("Replies with Pong!"),
+      new SlashCommandBuilder().setName("whoami").setDescription("What is Eleet?"),
+      showAllData,
+      dailyData,
+      profileData,
+      doneData
+    ].map(c => c.toJSON());
+
+    console.log(`🔄 Created ${commands.length} commands`);
+    
+    const rest = new REST({ version: "10" }).setToken(DISCORD_TOKEN);
+
     if (guildId) {
-      console.log("Registering commands to guild...");
+      console.log("🔄 Registering commands to guild...");
       await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands });
       console.log("✅ Commands registered to guild");
     } else {
-      console.log("Registering commands globally...");
+      console.log("🔄 Registering commands globally...");
       await rest.put(Routes.applicationCommands(clientId), { body: commands });
       console.log("✅ Commands registered globally");
     }
   } catch (error) {
-    console.error("Failed to register commands:", error);
+    console.error("❌ Failed to register commands:", error);
+    throw error; // Re-throw to be caught by the caller
   }
 }
 
@@ -53,9 +67,16 @@ const client = new Client({
 
 client.once("ready", async () => {
   console.log(`✅ Logged in as ${client.user?.tag}`);
-  
-  // Register commands on startup
-  await registerCommands();
+  console.log("🔄 Setting up commands...");
+  // Register commands on startup with better error handling
+  try {
+    console.log("🔄 Starting command registration...");
+    await registerCommands();
+    console.log("✅ Command registration completed");
+  } catch (error) {
+    console.error("❌ Command registration failed:", error);
+    console.log("⚠️ Bot will continue without command registration");
+  }
 });
 
 // Connect to MongoDB
@@ -107,3 +128,12 @@ client.on("interactionCreate", async (interaction: Interaction) => {
 });
 
 client.login(DISCORD_TOKEN);
+
+// Add process error handlers
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+});
