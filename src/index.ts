@@ -119,22 +119,47 @@ client.on("interactionCreate", async (interaction: Interaction) => {
         await done(interaction);
         break;
       default:
-        await interaction.reply({ content: "Unknown command", flags: MessageFlags.Ephemeral });
+        // Check if interaction is still valid before responding
+        if (!interaction.replied && !interaction.deferred) {
+          try {
+            await interaction.reply({ content: "Unknown command", flags: MessageFlags.Ephemeral });
+          } catch (replyError) {
+            console.error("Failed to reply to unknown command (interaction may have expired):", replyError);
+          }
+        }
         break;
     }
   } catch (error) {
     console.error(`Error executing command ${commandName}:`, error);
-    // Error handling is now done within each command
+    
+    // Try to respond to the user if possible, but don't crash if it fails
+    try {
+      if (!interaction.replied && !interaction.deferred) {
+        await interaction.reply({ content: "An error occurred while processing your command.", flags: MessageFlags.Ephemeral });
+      } else if (interaction.deferred && !interaction.replied) {
+        await interaction.editReply({ content: "An error occurred while processing your command." });
+      }
+    } catch (responseError) {
+      console.error("Could not send error response (interaction may have expired):", responseError);
+    }
   }
 });
 
 client.login(DISCORD_TOKEN);
 
-// Add process error handlers
+// Add process error handlers to prevent crashes
 process.on('uncaughtException', (error) => {
   console.error('❌ Uncaught Exception:', error);
+  console.log('⚠️ Bot continuing despite uncaught exception...');
 });
 
 process.on('unhandledRejection', (reason, promise) => {
   console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  console.log('⚠️ Bot continuing despite unhandled rejection...');
+});
+
+// Handle Discord client errors
+client.on('error', (error) => {
+  console.error('❌ Discord client error:', error);
+  console.log('⚠️ Bot continuing despite Discord client error...');
 });
