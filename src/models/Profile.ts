@@ -1,11 +1,12 @@
 import mongoose from "mongoose";
 
 export interface IProfile {
-  userId: string;          // Discord user snowflake
-  guildId: string;         // Discord guild (server) snowflake
-  currentStreak: number;   // running streak
-  bestStreak: number;      // all-time best
-  lastCompletedDate?: string; // "YYYY-MM-DD" in your TZ (e.g., America/Toronto)
+  userId: string;          
+  guildId: string;         
+  currentStreak: number;   
+  bestStreak: number;      
+  lastCompletedDate?: string;
+  tz?: string;
 }
 
 const profileSchema = new mongoose.Schema<IProfile>({
@@ -13,7 +14,8 @@ const profileSchema = new mongoose.Schema<IProfile>({
   guildId: { type: String, required: true },
   currentStreak: { type: Number, default: 0 },
   bestStreak: { type: Number, default: 0 },
-  lastCompletedDate: { type: String } // store date string, not Date, for TZ clarity
+  lastCompletedDate: { type: String }, // store date string, not Date, for TZ clarity
+  tz: { type: String } // Timezone string (e.g., "America/Toronto")
 }, { timestamps: true });
 
 /** One profile per (user,guild) */
