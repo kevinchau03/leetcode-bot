@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { Client, GatewayIntentBits } from "discord.js";
+import { Client, GatewayIntentBits, MessageFlags } from "discord.js";
 import type { Interaction } from "discord.js";
 import mongoose from "mongoose";
 import { DISCORD_TOKEN, MONGODB_URI } from './config';
@@ -53,7 +53,7 @@ client.on("interactionCreate", async (interaction: Interaction) => {
       await done(interaction);
       break;
     default:
-      await interaction.reply({ content: "Unknown command", ephemeral: true });
+      await interaction.reply({ content: "Unknown command", flags: MessageFlags.Ephemeral });
       break;
   }
 });

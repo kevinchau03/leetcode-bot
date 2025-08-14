@@ -1,7 +1,13 @@
 // commands/done.ts
-import { SlashCommandBuilder } from "discord.js";
+import { SlashCommandBuilder, ChatInputCommandInteraction, MessageFlags } from "discord.js";
 import { Profile } from "../models/Profile";
 import { getOrCreateProfile } from "../lib/profiles";
+import dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import tz from "dayjs/plugin/timezone";
+
+dayjs.extend(utc);
+dayjs.extend(tz);
 
 export const data = new SlashCommandBuilder()
   .setName("done")
@@ -12,14 +18,17 @@ export const data = new SlashCommandBuilder()
      .setRequired(false)
   );
 
-export async function execute(interaction: any) {
+export async function execute(interaction: ChatInputCommandInteraction) {
   const userId = interaction.user.id;
   const guildId = interaction.guildId;
-
+  if (!guildId) {
+    await interaction.reply({ content: "This command can only be used in a server.", flags: MessageFlags.Ephemeral });
+    return;
+  }
   let profile = await getOrCreateProfile(userId, guildId);
   const tz = interaction.options.getString("tz") ?? profile.tz ?? "UTC";
-  const today = new Date().toLocaleDateString("en-US", { timeZone: tz });
-  const yesterday = new Date(Date.now() - 86400000).toLocaleDateString("en-US", { timeZone: tz });
+  const today = dayjs().tz(tz).format("YYYY-MM-DD");
+  const yesterday = dayjs().tz(tz).subtract(1, "day").format("YYYY-MM-DD");
 
   // Compute new streak values in app code, then persist atomically.
   let nextCurrent = profile.currentStreak ?? 0;
@@ -48,12 +57,12 @@ export async function execute(interaction: any) {
   if (update) {
     await interaction.reply({
       content: `✅ Logged for **${today}** (${tz}). Streak: **${update.currentStreak}** (best: ${update.bestStreak}).`,
-      ephemeral: true
+      flags: MessageFlags.Ephemeral
     });
   } else {
     await interaction.reply({
       content: `❌ Failed to update your streak. Please try again later.`,
-      ephemeral: true
+      flags: MessageFlags.Ephemeral
     });
   }
 }
