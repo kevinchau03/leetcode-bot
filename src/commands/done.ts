@@ -22,7 +22,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
   try {
     // Check if interaction is already acknowledged
     if (!interaction.replied && !interaction.deferred) {
-      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+      await interaction.deferReply(); // Removed ephemeral flag to make it public
     }
     
     const userId = interaction.user.id;
@@ -32,7 +32,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       if (interaction.deferred) {
         await interaction.editReply({ content: errorMsg });
       } else {
-        await interaction.reply({ content: errorMsg, flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: errorMsg }); // Removed ephemeral flag
       }
       return;
     }
@@ -70,14 +70,14 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     if (interaction.deferred) {
       await interaction.editReply({ content: successMsg });
     } else {
-      await interaction.reply({ content: successMsg, flags: MessageFlags.Ephemeral });
+      await interaction.reply({ content: successMsg }); // Removed ephemeral flag
     }
   } else {
     const errorMsg = `❌ Failed to update your streak. Please try again later.`;
     if (interaction.deferred) {
       await interaction.editReply({ content: errorMsg });
     } else {
-      await interaction.reply({ content: errorMsg, flags: MessageFlags.Ephemeral });
+      await interaction.reply({ content: errorMsg }); // Removed ephemeral flag
     }
   }
   } catch (error) {
@@ -90,7 +90,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         if (interaction.deferred && !interaction.replied) {
           await interaction.editReply({ content: errorMsg });
         } else if (!interaction.replied) {
-          await interaction.reply({ content: errorMsg, flags: MessageFlags.Ephemeral });
+          await interaction.reply({ content: errorMsg }); // Removed ephemeral flag
         }
       } catch (followUpError) {
         console.error("Failed to send error response:", followUpError);

@@ -13,7 +13,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     // Check if interaction is already acknowledged
     if (!interaction.replied && !interaction.deferred) {
       console.log("Deferring reply...");
-      await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+      await interaction.deferReply(); // Removed ephemeral flag to make it public
       console.log("Reply deferred successfully");
     } else {
       console.log("Interaction already acknowledged, skipping defer");
@@ -26,7 +26,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
       if (interaction.deferred) {
         await interaction.editReply({ content: errorMsg });
       } else {
-        await interaction.reply({ content: errorMsg, flags: MessageFlags.Ephemeral });
+        await interaction.reply({ content: errorMsg }); // Removed ephemeral flag
       }
       return;
     }
@@ -46,7 +46,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     if (interaction.deferred) {
       await interaction.editReply({ embeds: [embed] });
     } else {
-      await interaction.reply({ embeds: [embed], flags: MessageFlags.Ephemeral });
+      await interaction.reply({ embeds: [embed] }); // Removed ephemeral flag
     }
   } catch (error) {
     console.error("Error in profile command:", error);
@@ -58,7 +58,7 @@ export async function execute(interaction: ChatInputCommandInteraction) {
         if (interaction.deferred && !interaction.replied) {
           await interaction.editReply({ content: errorMsg });
         } else if (!interaction.replied) {
-          await interaction.reply({ content: errorMsg, flags: MessageFlags.Ephemeral });
+          await interaction.reply({ content: errorMsg }); // Removed ephemeral flag
         }
       } catch (followUpError) {
         console.error("Failed to send error response:", followUpError);
