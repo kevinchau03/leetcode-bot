@@ -26,13 +26,13 @@
     "dotenv": "^17.2.1",
     "mongodb": "^6.18.0",
     "mongoose": "^8.17.1",
-    "node-cron": "^4.2.1"
+    "node-cron": "^4.2.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
   },
   "devDependencies": {
     "@types/mongoose": "^5.11.96",
     "@types/node": "^24.2.1",
-    "@types/ws": "^8.18.1",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.9.2"
+    "@types/ws": "^8.18.1"
   }
 }
