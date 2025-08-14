@@ -6,6 +6,7 @@ import { DISCORD_TOKEN, MONGODB_URI } from './config';
 import { execute as showAll } from './commands/showAll';
 import { execute as daily } from './commands/daily';
 import { execute as profile } from './commands/profile';
+import { execute as done } from './commands/done';
 
 
 
@@ -47,6 +48,9 @@ client.on("interactionCreate", async (interaction: Interaction) => {
       break;
     case "profile":
       await profile(interaction);
+      break;
+    case "done":
+      await done(interaction);
       break;
     default:
       await interaction.reply({ content: "Unknown command", ephemeral: true });

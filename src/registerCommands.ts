@@ -3,6 +3,7 @@ import { REST, Routes, SlashCommandBuilder } from "discord.js";
 import { data as profile } from "./commands/profile";
 import { data as daily } from "./commands/daily";
 import { data as showAll } from "./commands/showAll";
+import { data as done } from "./commands/done";
 
 const token = process.env.DISCORD_TOKEN!;
 const clientId = process.env.DISCORD_CLIENT_ID!;
@@ -13,7 +14,8 @@ const commands = [
   new SlashCommandBuilder().setName("whoami").setDescription("What is Eleet?"),
   showAll,
   daily,
-  profile
+  profile,
+  done
 ].map(c => c.toJSON());
 
 const rest = new REST({ version: "10" }).setToken(token);
