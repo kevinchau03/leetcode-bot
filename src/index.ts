@@ -8,14 +8,54 @@ import { execute as daily } from './commands/daily';
 import { execute as profile } from './commands/profile';
 import { execute as done } from './commands/done';
 
+// Auto-register commands on startup
+async function registerCommands() {
+  const { REST, Routes, SlashCommandBuilder } = await import("discord.js");
+  const { data: profileData } = await import('./commands/profile');
+  const { data: dailyData } = await import('./commands/daily');
+  const { data: showAllData } = await import('./commands/showAll');
+  const { data: doneData } = await import('./commands/done');
+
+  const clientId = process.env.DISCORD_CLIENT_ID!;
+  const guildId = process.env.DISCORD_GUILD_ID;
+  
+  const commands = [
+    new SlashCommandBuilder().setName("ping").setDescription("Replies with Pong!"),
+    new SlashCommandBuilder().setName("whoami").setDescription("What is Eleet?"),
+    showAllData,
+    dailyData,
+    profileData,
+    doneData
+  ].map(c => c.toJSON());
+
+  const rest = new REST({ version: "10" }).setToken(DISCORD_TOKEN);
+
+  try {
+    if (guildId) {
+      console.log("Registering commands to guild...");
+      await rest.put(Routes.applicationGuildCommands(clientId, guildId), { body: commands });
+      console.log("✅ Commands registered to guild");
+    } else {
+      console.log("Registering commands globally...");
+      await rest.put(Routes.applicationCommands(clientId), { body: commands });
+      console.log("✅ Commands registered globally");
+    }
+  } catch (error) {
+    console.error("Failed to register commands:", error);
+  }
+}
+
 
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds], // enough for slash commands
 });
 
-client.once("ready", () => {
+client.once("ready", async () => {
   console.log(`✅ Logged in as ${client.user?.tag}`);
+  
+  // Register commands on startup
+  await registerCommands();
 });
 
 // Connect to MongoDB
