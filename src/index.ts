@@ -66,6 +66,7 @@ const client = new Client({
 });
 
 client.once("ready", async () => {
+  console.log("Alright Here we go we starting.");
   console.log(`✅ Logged in as ${client.user?.tag}`);
   console.log("🔄 Setting up commands...");
   // Register commands on startup with better error handling
