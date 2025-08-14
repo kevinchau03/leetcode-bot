@@ -33,7 +33,7 @@ async function postDaily() {
   }
 
   const msg = `@everyone today's leetcode question is **${random.title}**: ${random.link || "(link unavailable)"}`;
-  await rest.post(Routes.channelMessages(DAILY_CHANNEL_ID), { body: { content: msg } });
+  await rest.post(Routes.channelMessages(DAILY_CHANNEL_ID as string), { body: { content: msg } });
 
   console.log("Posted daily:", random.slug || random.title);
 }
