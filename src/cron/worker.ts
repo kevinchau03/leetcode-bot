@@ -1,8 +1,9 @@
+// cron/worker.ts
 import "dotenv/config";
 import cron from "node-cron";
 import dayjs from "dayjs";
 import mongoose from "mongoose";
-import { DAILY_CHANNEL_ID, DISCORD_TOKEN, MONGODB_URI} from "../config";
+import { DAILY_CHANNEL_ID, DISCORD_TOKEN, MONGODB_URI } from "../config";
 import { REST, Routes } from "discord.js";
 import { Question } from "../models/Question";
 import { DailyQuestion } from "../models/Daily";
@@ -10,23 +11,19 @@ import { DailyQuestion } from "../models/Daily";
 const rest = new REST({ version: "10" }).setToken(DISCORD_TOKEN);
 
 async function postDaily() {
-  // Only count active questions
   let count = await Question.countDocuments({ active: true });
-  
-  // If no active questions, reactivate all questions
+
   if (!count) {
     console.log("No active questions available, reactivating all questions...");
     await Question.updateMany({}, { $set: { active: true } });
     count = await Question.countDocuments({ active: true });
     console.log(`Reactivated ${count} questions`);
-    
     if (!count) {
       console.log("No questions available in database");
       return;
     }
   }
-  
-  // Pick a random active question
+
   const randomIndex = Math.floor(Math.random() * count);
   const random = await Question.findOne({ active: true }).skip(randomIndex);
   if (!random) {
@@ -34,7 +31,7 @@ async function postDaily() {
     return;
   }
 
-  // Idempotency: one post per day
+  // Idempotency: one per day
   try {
     await DailyQuestion.create({
       date: dayjs().format("YYYY-MM-DD"),
@@ -43,7 +40,7 @@ async function postDaily() {
       difficulty: random.difficulty,
       tags: random.tags,
       link: random.link,
-      questionId: random._id
+      questionId: random._id,
     });
   } catch (e: any) {
     if (e?.code === 11000) {
@@ -53,37 +50,35 @@ async function postDaily() {
     throw e;
   }
 
-  // Mark the question as inactive to avoid repeats
-  await Question.updateOne(
-    { _id: random._id },
-    { $set: { active: false } }
-  );
+  await Question.updateOne({ _id: random._id }, { $set: { active: false } });
 
-  const msg = `@everyone today's leetcode question is **${random.title}**: ${random.link || "(link unavailable)"}
-  Don't forget to use /done to log your entry for today. Best of luck! (Psst, /hint can help!)`;
-  await rest.post(Routes.channelMessages(DAILY_CHANNEL_ID as string), { body: { content: msg } });
+  const msg = `@everyone today's leetcode question is **${random.title}**: ${random.link || "(link unavailable)"}\nDon't forget to use /done to log your entry for today. Best of luck! (Psst, /hint can help!)`;
+
+  await rest.post(Routes.channelMessages(DAILY_CHANNEL_ID as string), {
+    body: { content: msg },
+  });
 
   console.log("Posted daily:", random.slug || random.title);
   console.log(`Marked question ${random.slug} as inactive`);
-  
-  // Log remaining active questions
+
   const remainingActive = await Question.countDocuments({ active: true });
   console.log(`${remainingActive} active questions remaining`);
 }
 
-(async () => {
+export async function startCron() {
   if (!MONGODB_URI || !DISCORD_TOKEN || !DAILY_CHANNEL_ID) {
     throw new Error("Missing env: MONGODB_URI / DISCORD_TOKEN / DAILY_CHANNEL_ID");
   }
 
-  await mongoose.connect(MONGODB_URI);
-  console.log("✅ Cron worker connected to MongoDB");
+  // connect if not already connected
+  if (mongoose.connection.readyState === 0) {
+    await mongoose.connect(MONGODB_URI);
+    console.log("✅ Cron worker connected to MongoDB");
+  }
+  cron.schedule("45 12 * * *", postDaily, { timezone: "America/Toronto" });
+  console.log("⏰ Cron scheduled for 12:45 America/Toronto");
 
-  cron.schedule("30 12 * * *", postDaily, { timezone: "America/Toronto" });
-  console.log("⏰ Cron scheduled for 08:00 America/Toronto");
-})();
-
-// Optional: graceful shutdown logs
-process.on("SIGTERM", () => {
-  console.log("SIGTERM — cron worker stopping");
-});
+  process.on("SIGTERM", () => {
+    console.log("SIGTERM — cron worker stopping");
+  });
+}
