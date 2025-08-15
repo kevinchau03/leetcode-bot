@@ -14,10 +14,11 @@ A Discord bot that helps users track daily LeetCode practice with streaks, autom
 ## Commands
 
 - `/daily` - View today's LeetCode question
-- `/done [tz]` - Mark today's question as completed
+- `/done [tz] [solution] [difficulty] [time] [notes]` - Mark today's question as completed
 - `/profile` - View your streak and stats
 - `/allquestions` - Browse available questions
 - `/ping` - Check bot status
+- `/leaderboard` - View the leaderboard
 
 ## Setup
 
