@@ -1,25 +1,18 @@
-import mongoose from "mongoose";
+import { Schema, model } from "mongoose";
 
-export interface ICompletion {
-  userId: string;
-  guildId: string;
-  date: string;            // "YYYY-MM-DD" in your TZ
-  questionSlug: string;    // slug used that day
-  completedAt: Date;       // actual timestamp of check-in (UTC)
-}
-
-const completionSchema = new mongoose.Schema<ICompletion>({
+const CompletionSchema = new Schema({
   userId: { type: String, required: true },
   guildId: { type: String, required: true },
-  date: { type: String, required: true },
+  date: { type: String, required: true }, // "YYYY-MM-DD"
   questionSlug: { type: String, required: true },
-  completedAt: { type: Date, default: () => new Date() }
-}, { timestamps: true });
+  completedAt: { type: Date, default: Date.now },
+  solutionLink: { type: String }, // Optional GitHub/LeetCode link
+  timeTaken: { type: Number }, // Minutes taken to solve
+  difficultyRating: { type: Number, min: 1, max: 5 }, // Personal difficulty rating
+  notes: { type: String }, // Optional notes
+});
 
-/** Prevent double check-ins per day */
-completionSchema.index({ userId: 1, guildId: 1, date: 1 }, { unique: true });
+// Compound index to prevent duplicate completions
+CompletionSchema.index({ userId: 1, guildId: 1, date: 1 }, { unique: true });
 
-/** Useful for leaderboards/queries */
-completionSchema.index({ guildId: 1, date: 1 });
-
-export const Completion = mongoose.model<ICompletion>("Completion", completionSchema, "completions");
+export const Completion = model("Completion", CompletionSchema);

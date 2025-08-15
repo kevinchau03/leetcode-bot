@@ -4,6 +4,7 @@ import { data as profile } from "./commands/profile";
 import { data as daily } from "./commands/daily";
 import { data as showAll } from "./commands/showAll";
 import { data as done } from "./commands/done";
+import { data as leaderboard } from "./commands/leaderboard";
 
 const token = process.env.DISCORD_TOKEN!;
 const clientId = process.env.DISCORD_CLIENT_ID!;
@@ -17,7 +18,7 @@ const commands = [
   daily,
   profile,
   done,
-  new SlashCommandBuilder().setName("leaderboard").setDescription("View the leaderboard"),
+  leaderboard,
   new SlashCommandBuilder().setName("help").setDescription("Get help with the bot")
 ].map(c => c.toJSON());
 

@@ -8,6 +8,7 @@ import { execute as showAll } from "./commands/showAll";
 import { execute as daily } from "./commands/daily";
 import { execute as profile } from "./commands/profile";
 import { execute as done } from "./commands/done";
+import { execute as leaderboard } from "./commands/leaderboard";
 import { startCron } from "./cron/worker";
 
 const client = new Client({
@@ -68,7 +69,7 @@ client.on("interactionCreate", async (interaction: Interaction) => {
           await done(interaction);
           break;
         case "leaderboard":
-          await interaction.reply("COMING SOON!!");
+          await leaderboard(interaction);
           break;
         default:
           if (!interaction.replied && !interaction.deferred) {

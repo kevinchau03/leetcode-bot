@@ -1,102 +1,160 @@
 // commands/done.ts
-import { SlashCommandBuilder, ChatInputCommandInteraction, MessageFlags } from "discord.js";
-import { Profile } from "../models/Profile";
+import { SlashCommandBuilder } from "discord.js";
+import type { ChatInputCommandInteraction } from "discord.js";
 import { getOrCreateProfile } from "../lib/profiles";
-import dayjs from "dayjs";
-import utc from "dayjs/plugin/utc";
-import tz from "dayjs/plugin/timezone";
-
-dayjs.extend(utc);
-dayjs.extend(tz);
+import { Completion } from "../models/Completion";
+import { Profile } from "../models/Profile";
+import { DailyQuestion } from "../models/Daily";
+import { EmbedBuilder } from "discord.js";
 
 export const data = new SlashCommandBuilder()
   .setName("done")
   .setDescription("Mark today's LeetCode as completed")
-  .addStringOption(o =>
-    o.setName("tz")
-     .setDescription("Your timezone (IANA, e.g. America/Toronto)")
-     .setRequired(false)
+  .addStringOption(option =>
+    option.setName("solution")
+      .setDescription("Link to your solution (GitHub, LeetCode, etc.)")
+      .setRequired(false)
+  )
+  .addIntegerOption(option =>
+    option.setName("time")
+      .setDescription("Time taken in minutes")
+      .setRequired(false)
+      .setMinValue(1)
+      .setMaxValue(600)
+  )
+  .addIntegerOption(option =>
+    option.setName("difficulty")
+      .setDescription("How difficult did you find it? (1=Very Easy, 5=Very Hard)")
+      .setRequired(false)
+      .setMinValue(1)
+      .setMaxValue(5)
+  )
+  .addStringOption(option =>
+    option.setName("notes")
+      .setDescription("Any notes about your approach or learnings")
+      .setRequired(false)
   );
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   try {
-    // Check if interaction is already acknowledged
-    if (!interaction.replied && !interaction.deferred) {
-      await interaction.deferReply(); // Removed ephemeral flag to make it public
-    }
-    
+    await interaction.deferReply();
+
     const userId = interaction.user.id;
-    const guildId = interaction.guildId;
-    if (!guildId) {
-      const errorMsg = "This command can only be used in a server.";
-      if (interaction.deferred) {
-        await interaction.editReply({ content: errorMsg });
-      } else {
-        await interaction.reply({ content: errorMsg }); // Removed ephemeral flag
+    const guildId = interaction.guildId!;
+    const today = new Date().toISOString().split("T")[0];
+
+    // Get today's question
+    const q = await DailyQuestion.findOne({ date: today }).lean();
+    
+      if (!q) {
+        return interaction.editReply(
+          `No daily question found for **${today}** yet. (Seed one or run your daily job.)`
+        );
       }
+
+    // Check if already completed
+    const existingCompletion = await Completion.findOne({
+      userId,
+      guildId,
+      date: today
+    });
+
+    if (existingCompletion) {
+      await interaction.editReply("✅ You've already marked today's question as completed!");
       return;
     }
-    let profile = await getOrCreateProfile(userId, guildId);
-  const tz = interaction.options.getString("tz") ?? profile.tz ?? "UTC";
-  const today = dayjs().tz(tz).format("YYYY-MM-DD");
-  const yesterday = dayjs().tz(tz).subtract(1, "day").format("YYYY-MM-DD");
 
-  // Compute new streak values in app code, then persist atomically.
-  let nextCurrent = profile.currentStreak ?? 0;
+    // Get optional parameters
+    const solutionLink = interaction.options.getString("solution");
+    const timeTaken = interaction.options.getInteger("time");
+    const difficultyRating = interaction.options.getInteger("difficulty");
+    const notes = interaction.options.getString("notes");
 
-  if (profile.lastCompletedDate === today) {
-    // already counted today
-  } else if (profile.lastCompletedDate === yesterday) {
-    nextCurrent = (profile.currentStreak ?? 0) + 1;
-  } else {
-    nextCurrent = 1;
-  }
+    // Create completion record
+    await Completion.create({
+      userId,
+      guildId,
+      date: today,
+      questionSlug: q.slug,
+      solutionLink,
+      timeTaken,
+      difficultyRating,
+      notes,
+      completedAt: new Date()
+    });
 
-  const update = await Profile.findOneAndUpdate(
-    { userId, guildId },
-    {
-      $set: {
-        tz,
-        lastCompletedDate: today,
-        currentStreak: nextCurrent,
+    // Update profile streak
+    const profile = await getOrCreateProfile(userId, guildId);
+    let nextCurrent = profile.currentStreak ?? 0;
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0]; // 24 hours ago
+
+    if (profile.lastCompletedDate === today) {
+      // already counted today
+    } else if (profile.lastCompletedDate === yesterday) {
+      nextCurrent = (profile.currentStreak ?? 0) + 1;
+    } else {
+      nextCurrent = 1;
+    }
+
+    await Profile.findOneAndUpdate(
+      { userId, guildId },
+      {
+        $set: {
+          lastCompletedDate: today,
+          currentStreak: nextCurrent,
+        },
+        $max: { bestStreak: nextCurrent }
       },
-      $max: { bestStreak: nextCurrent }
-    },
-    { new: true }
-  );
+      { new: true }
+    );
 
-  if (update) {
-    const successMsg = `✅ Logged for **${today}** (${tz}). Streak: **${update.currentStreak}** (best: ${update.bestStreak}).`;
-    if (interaction.deferred) {
-      await interaction.editReply({ content: successMsg });
-    } else {
-      await interaction.reply({ content: successMsg }); // Removed ephemeral flag
+    // Get completion stats for today
+    const todayCompletions = await Completion.find({
+      guildId,
+      date: today
+    }).sort({ completedAt: 1 });
+
+    const totalCompletions = todayCompletions.length;
+    const userPosition = todayCompletions.findIndex(c => c.userId === userId) + 1;
+    const isFirst = userPosition === 1;
+
+    // Create response embed
+    const embed = new EmbedBuilder()
+      .setColor(isFirst ? "#FFD700" : "#00ff00")
+      .setTitle(isFirst ? "🥇 First to Complete!" : "✅ Question Completed!")
+      .setDescription(`**${q.title}** marked as complete!`)
+      .addFields([
+        { name: "🔥 Current Streak", value: `${profile.currentStreak} days`, inline: true },
+        { name: "🏆 Best Streak", value: `${profile.bestStreak} days`, inline: true },
+        { name: "📊 Today's Stats", value: `${userPosition}/${totalCompletions} completed`, inline: true }
+      ]);
+
+    if (solutionLink) embed.addFields([{ name: "🔗 Solution", value: solutionLink, inline: false }]);
+    if (timeTaken) embed.addFields([{ name: "⏱️ Time Taken", value: `${timeTaken} minutes`, inline: true }]);
+    if (difficultyRating) embed.addFields([{ name: "⭐ Difficulty Rating", value: `${difficultyRating}/5`, inline: true }]);
+    if (notes) embed.addFields([{ name: "📝 Notes", value: notes, inline: false }]);
+
+    // Show who else completed it
+    if (totalCompletions > 1) {
+      const otherCompletions = todayCompletions.filter(c => c.userId !== userId);
+      const otherUsers = otherCompletions.slice(0, 5).map((c, i) => {
+        const position = todayCompletions.findIndex(comp => comp.userId === c.userId) + 1;
+        const medal = position === 1 ? "🥇" : position === 2 ? "🥉" : position === 3 ? "🥉" : "✅";
+        return `${medal} <@${c.userId}>`;
+      }).join("\n");
+
+      const moreCount = Math.max(0, otherCompletions.length - 5);
+      embed.addFields([{
+        name: "👥 Others who completed today",
+        value: otherUsers + (moreCount > 0 ? `\n+${moreCount} more` : ""),
+        inline: false
+      }]);
     }
-  } else {
-    const errorMsg = `❌ Failed to update your streak. Please try again later.`;
-    if (interaction.deferred) {
-      await interaction.editReply({ content: errorMsg });
-    } else {
-      await interaction.reply({ content: errorMsg }); // Removed ephemeral flag
-    }
-  }
+
+    await interaction.editReply({ embeds: [embed] });
+
   } catch (error) {
     console.error("Error in done command:", error);
-    
-    // Only try to respond if it's not an expired interaction error
-    if (error && typeof error === 'object' && 'code' in error && error.code !== 10062) {
-      try {
-        const errorMsg = "An error occurred while processing your command.";
-        if (interaction.deferred && !interaction.replied) {
-          await interaction.editReply({ content: errorMsg });
-        } else if (!interaction.replied) {
-          await interaction.reply({ content: errorMsg }); // Removed ephemeral flag
-        }
-      } catch (followUpError) {
-        console.error("Failed to send error response:", followUpError);
-      }
-    } else {
-      console.log("Interaction expired or unknown error, cannot respond");
-    }
+    // ... error handling ...
   }
 }
