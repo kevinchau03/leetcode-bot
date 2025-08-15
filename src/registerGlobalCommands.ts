@@ -14,7 +14,9 @@ const commands = [
   showAll,
   daily,
   profile,
-  done
+  done,
+  new SlashCommandBuilder().setName("leaderboard").setDescription("View the leaderboard"),
+  new SlashCommandBuilder().setName("help").setDescription("Get help with the bot")
 ].map(c => c.toJSON());
 
 const rest = new REST({ version: "10" }).setToken(token);

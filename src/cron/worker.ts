@@ -59,7 +59,8 @@ async function postDaily() {
     { $set: { active: false } }
   );
 
-  const msg = `@everyone today's leetcode question is **${random.title}**: ${random.link || "(link unavailable)"}`;
+  const msg = `@everyone today's leetcode question is **${random.title}**: ${random.link || "(link unavailable)"}
+  Don't forget to use /done to log your entry for today. Best of luck! (Psst, /hint can help!)`;
   await rest.post(Routes.channelMessages(DAILY_CHANNEL_ID as string), { body: { content: msg } });
 
   console.log("Posted daily:", random.slug || random.title);
@@ -78,8 +79,7 @@ async function postDaily() {
   await mongoose.connect(MONGODB_URI);
   console.log("✅ Cron worker connected to MongoDB");
 
-  // Run every day at 08:00 America/Toronto
-  cron.schedule("0 8 * * *", postDaily, { timezone: "America/Toronto" });
+  cron.schedule("30 12 * * *", postDaily, { timezone: "America/Toronto" });
   console.log("⏰ Cron scheduled for 08:00 America/Toronto");
 })();
 
