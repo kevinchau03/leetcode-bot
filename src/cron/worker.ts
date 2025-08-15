@@ -10,19 +10,40 @@ import { DailyQuestion } from "../models/Daily";
 const rest = new REST({ version: "10" }).setToken(DISCORD_TOKEN);
 
 async function postDaily() {
-  const count = await Question.countDocuments();
+  // Only count active questions
+  let count = await Question.countDocuments({ active: true });
+  
+  // If no active questions, reactivate all questions
   if (!count) {
-    console.log("No questions available");
+    console.log("No active questions available, reactivating all questions...");
+    await Question.updateMany({}, { $set: { active: true } });
+    count = await Question.countDocuments({ active: true });
+    console.log(`Reactivated ${count} questions`);
+    
+    if (!count) {
+      console.log("No questions available in database");
+      return;
+    }
+  }
+  
+  // Pick a random active question
+  const randomIndex = Math.floor(Math.random() * count);
+  const random = await Question.findOne({ active: true }).skip(randomIndex);
+  if (!random) {
+    console.log("Failed to find an active question");
     return;
   }
-  const random = await Question.findOne().skip(Math.floor(Math.random() * count));
-  if (!random) return;
 
   // Idempotency: one post per day
   try {
     await DailyQuestion.create({
-      questionId: random._id,
       date: dayjs().format("YYYY-MM-DD"),
+      slug: random.slug,
+      title: random.title,
+      difficulty: random.difficulty,
+      tags: random.tags,
+      link: random.link,
+      questionId: random._id
     });
   } catch (e: any) {
     if (e?.code === 11000) {
@@ -32,10 +53,21 @@ async function postDaily() {
     throw e;
   }
 
+  // Mark the question as inactive to avoid repeats
+  await Question.updateOne(
+    { _id: random._id },
+    { $set: { active: false } }
+  );
+
   const msg = `@everyone today's leetcode question is **${random.title}**: ${random.link || "(link unavailable)"}`;
   await rest.post(Routes.channelMessages(DAILY_CHANNEL_ID as string), { body: { content: msg } });
 
   console.log("Posted daily:", random.slug || random.title);
+  console.log(`Marked question ${random.slug} as inactive`);
+  
+  // Log remaining active questions
+  const remainingActive = await Question.countDocuments({ active: true });
+  console.log(`${remainingActive} active questions remaining`);
 }
 
 (async () => {

@@ -104,6 +104,9 @@ client.on("interactionCreate", async (interaction: Interaction) => {
         case "ping":
           await interaction.reply("Pong! 🏓");
           break;
+        case "help":
+          await interaction.reply("COMING SOON!!");
+          break;
         case "whoami":
           await interaction.reply("I am Eleet, your coding companion! I provide users with daily leetcode challenges so that they can become elite! 🤖");
           break;
@@ -119,11 +122,14 @@ client.on("interactionCreate", async (interaction: Interaction) => {
         case "done":
           await done(interaction);
           break;
+        case "leaderboard":
+          await interaction.reply("COMING SOON!!");
+          break;
         default:
           // Check if interaction is still valid before responding
           if (!interaction.replied && !interaction.deferred) {
             try {
-              await interaction.reply({ content: "bruh wtf", flags: MessageFlags.Ephemeral });
+              await interaction.reply({ content: "Unknown command", flags: MessageFlags.Ephemeral });
             } catch (replyError) {
               console.error("Failed to reply to unknown command (interaction may have expired):", replyError);
             }
