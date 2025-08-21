@@ -151,6 +151,10 @@ export async function execute(interaction: ChatInputCommandInteraction) {
     const isFirst = userPosition === 1;
 
     // Create response embed
+    if (!updatedProfile) {
+      await interaction.editReply("❌ Could not update your profile. Please try again later.");
+      return;
+    }
     const embed = new EmbedBuilder()
       .setColor(isFirst ? "#FFD700" : "#00ff00")
       .setTitle(isFirst ? "🥇 First to Complete!" : "✅ Question Completed!")
