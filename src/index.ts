@@ -10,6 +10,7 @@ import { execute as profile } from "./commands/profile";
 import { execute as done } from "./commands/done";
 import { execute as leaderboard } from "./commands/leaderboard";
 import { startCron } from "./cron/worker";
+import { cleanupAndDeploy } from "./scripts/cleanup-and-deploy";
 
 const client = new Client({
   intents: [GatewayIntentBits.Guilds],
@@ -18,6 +19,12 @@ const client = new Client({
 client.once("ready", async () => {
   console.log("✅ Bot is online.");
   console.log(`✅ Logged in as ${client.user?.tag}`);
+  
+  try {
+    await cleanupAndDeploy();
+  } catch (err) {
+    console.error("❌ Failed to cleanup and deploy commands:", err);
+  }
 
   // Start cron worker (uses same process; no second command needed)
   try {
