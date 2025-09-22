@@ -20,7 +20,7 @@ export const data = new SlashCommandBuilder()
   .addStringOption(option =>
     option.setName("solution")
       .setDescription("Link to your solution (GitHub, LeetCode, etc.)")
-      .setRequired(false)
+      .setRequired(true)
   )
   .addIntegerOption(option =>
     option.setName("time")
@@ -28,13 +28,6 @@ export const data = new SlashCommandBuilder()
       .setRequired(false)
       .setMinValue(1)
       .setMaxValue(600)
-  )
-  .addIntegerOption(option =>
-    option.setName("difficulty")
-      .setDescription("How difficult did you find it? (1=Very Easy, 5=Very Hard)")
-      .setRequired(false)
-      .setMinValue(1)
-      .setMaxValue(5)
   )
   .addStringOption(option =>
     option.setName("notes")

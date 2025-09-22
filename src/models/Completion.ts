@@ -6,9 +6,8 @@ const CompletionSchema = new Schema({
   date: { type: String, required: true }, // "YYYY-MM-DD"
   questionSlug: { type: String, required: true },
   completedAt: { type: Date, default: Date.now },
-  solutionLink: { type: String }, // Optional GitHub/LeetCode link
+  solutionLink: { type: String },
   timeTaken: { type: Number }, // Minutes taken to solve
-  difficultyRating: { type: Number, min: 1, max: 5 }, // Personal difficulty rating
   notes: { type: String }, // Optional notes
 });
 
