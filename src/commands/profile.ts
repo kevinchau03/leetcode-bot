@@ -195,12 +195,6 @@ async function showCompletionHistory(interaction: ChatInputCommandInteraction, u
       line += ` • ⏱️ ${completion.timeTaken}m`;
     }
     
-    // Add difficulty rating if available
-    if (completion.difficultyRating) {
-      const stars = "⭐".repeat(completion.difficultyRating);
-      line += ` • ${stars}`;
-    }
-    
     // Add solution link if available
     if (completion.solutionLink) {
       line += ` • [🔗 Solution](${completion.solutionLink})`;

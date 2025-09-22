@@ -9,7 +9,7 @@
   "scripts": {
     "dev": "ts-node src/index.ts",
     "register": "ts-node src/registerCommands.ts",
-    "register:global": "ts-node src/registerGlobalCommands.ts",
+    "clear:commands": "ts-node src/scripts/clear-commands.ts",
     "build": "tsc",
     "start": "node dist/index.js",
     "test:mongo": "ts-node src/testMongo.ts",

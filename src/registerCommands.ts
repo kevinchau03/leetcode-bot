@@ -27,6 +27,13 @@ const rest = new REST({ version: "10" }).setToken(token);
 (async () => {
   try {
     if (isProduction) {
+      console.log("Clearing all existing global commands...");
+      await rest.put(
+        Routes.applicationCommands(clientId),
+        { body: [] }
+      );
+      console.log("✅ All existing commands cleared");
+      
       console.log("Registering commands globally for production...");
       await rest.put(
         Routes.applicationCommands(clientId),
