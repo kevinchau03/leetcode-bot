@@ -4,7 +4,7 @@ import { Client, GatewayIntentBits, MessageFlags } from "discord.js";
 import type { Interaction } from "discord.js";
 import mongoose from "mongoose";
 import { DISCORD_TOKEN, MONGODB_URI } from "./config";
-import { execute as showAll } from "./commands/showAll";
+import { execute as showAll, showQuestionsPage } from "./commands/showAll";
 import { execute as daily } from "./commands/daily";
 import { execute as profile } from "./commands/profile";
 import { execute as done } from "./commands/done";
@@ -45,58 +45,80 @@ mongoose
 
 client.on("interactionCreate", async (interaction: Interaction) => {
   try {
-    if (!interaction.isChatInputCommand()) return;
+    if (interaction.isChatInputCommand()) {
+      const { commandName } = interaction;
+      console.log(`Received command: ${commandName} from ${interaction.user.username} (${interaction.user.id})`);
 
-    const { commandName } = interaction;
-    console.log(`Received command: ${commandName} from ${interaction.user.username} (${interaction.user.id})`);
-
-    try {
-      switch (commandName) {
-        case "ping":
-          await interaction.reply("Pong! 🏓");
-          break;
-        case "help":
-          await interaction.reply("COMING SOON!!");
-          break;
-        case "whoami":
-          await interaction.reply(
-            "I am Eleet, your coding companion! I provide users with daily leetcode challenges so that they can become elite! 🤖"
-          );
-          break;
-        case "allquestions":
-          await showAll(interaction);
-          break;
-        case "daily":
-          await daily(interaction);
-          break;
-        case "profile":
-          await profile(interaction);
-          break;
-        case "done":
-          await done(interaction);
-          break;
-        case "leaderboard":
-          await leaderboard(interaction);
-          break;
-        default:
-          if (!interaction.replied && !interaction.deferred) {
-            try {
-              await interaction.reply({ content: "Unknown command", flags: MessageFlags.Ephemeral });
-            } catch (replyError) {
-              console.error("Failed to reply to unknown command:", replyError);
-            }
-          }
-      }
-    } catch (error) {
-      console.error(`Error executing command ${commandName}:`, error);
       try {
-        if (!interaction.replied && !interaction.deferred) {
-          await interaction.reply({ content: "An error occurred while processing your command.", flags: MessageFlags.Ephemeral });
-        } else if (interaction.deferred && !interaction.replied) {
-          await interaction.editReply({ content: "An error occurred while processing your command." });
+        switch (commandName) {
+          case "ping":
+            await interaction.reply("Pong! 🏓");
+            break;
+          case "help":
+            await interaction.reply("COMING SOON!!");
+            break;
+          case "whoami":
+            await interaction.reply(
+              "I am Eleet, your coding companion! I provide users with daily leetcode challenges so that they can become elite! 🤖"
+            );
+            break;
+          case "allquestions":
+            await showAll(interaction);
+            break;
+          case "daily":
+            await daily(interaction);
+            break;
+          case "profile":
+            await profile(interaction);
+            break;
+          case "done":
+            await done(interaction);
+            break;
+          case "leaderboard":
+            await leaderboard(interaction);
+            break;
+          default:
+            if (!interaction.replied && !interaction.deferred) {
+              try {
+                await interaction.reply({ content: "Unknown command", flags: MessageFlags.Ephemeral });
+              } catch (replyError) {
+                console.error("Failed to reply to unknown command:", replyError);
+              }
+            }
         }
-      } catch (responseError) {
-        console.error("Could not send error response:", responseError);
+      } catch (error) {
+        console.error(`Error executing command ${commandName}:`, error);
+        try {
+          if (!interaction.replied && !interaction.deferred) {
+            await interaction.reply({ content: "An error occurred while processing your command.", flags: MessageFlags.Ephemeral });
+          } else if (interaction.deferred && !interaction.replied) {
+            await interaction.editReply({ content: "An error occurred while processing your command." });
+          }
+        } catch (responseError) {
+          console.error("Could not send error response:", responseError);
+        }
+      }
+    } else if (interaction.isButton()) {
+      // Handle button interactions
+      const customId = interaction.customId;
+      console.log(`Received button interaction: ${customId} from ${interaction.user.username}`);
+
+      try {
+        if (customId.startsWith("allquestions_page_")) {
+          const page = parseInt(customId.split("_")[2]);
+          await showQuestionsPage(interaction, page);
+        } else {
+          await interaction.reply({ content: "Unknown button interaction", ephemeral: true });
+        }
+      } catch (error) {
+        console.error(`Error handling button interaction ${customId}:`, error);
+        try {
+          if (!interaction.replied && !interaction.deferred) {
+            await interaction.reply({ content: "An error occurred while processing your request.", ephemeral: true });
+          }
+        } catch (responseError) {
+          console.error("Could not send button error response:", responseError);
+        }
       }
     }
   } catch (outerError) {
