@@ -27,21 +27,31 @@ export async function execute(interaction: ChatInputCommandInteraction) {
 
 export async function showQuestionsPage(interaction: ChatInputCommandInteraction | any, page: number) {
   try {
+    // Handle different interaction types - defer if it's a button interaction
+    if (interaction.isButton && interaction.isButton()) {
+      await interaction.deferUpdate();
+    }
+
     // Get total count for pagination
     const totalQuestions = await Question.countDocuments({});
     
     if (!totalQuestions) {
-      return interaction.editReply("No questions found in the database.");
+      const errorMsg = "No questions found in the database.";
+      if (interaction.isButton && interaction.isButton()) {
+        return interaction.editReply(errorMsg);
+      } else {
+        return interaction.editReply(errorMsg);
+      }
     }
 
     const totalPages = Math.ceil(totalQuestions / QUESTIONS_PER_PAGE);
     
     if (page > totalPages) {
       const errorMsg = `❌ Page ${page} doesn't exist. There are only ${totalPages} pages.`;
-      if (interaction.editReply) {
-        return interaction.editReply(errorMsg);
+      if (interaction.isButton && interaction.isButton()) {
+        return interaction.editReply({ content: errorMsg, embeds: [], components: [] });
       } else {
-        return interaction.update({ content: errorMsg, embeds: [], components: [] });
+        return interaction.editReply(errorMsg);
       }
     }
 
@@ -106,18 +116,16 @@ export async function showQuestionsPage(interaction: ChatInputCommandInteraction
       components: buttons.length > 0 ? [row] : []
     };
 
-    if (interaction.editReply) {
-      await interaction.editReply(messageData);
-    } else {
-      await interaction.update(messageData);
-    }
+    // Use editReply for both command and button interactions after deferring
+    await interaction.editReply(messageData);
   } catch (err) {
     console.error("Error in showQuestionsPage:", err);
     const errorMsg = "❌ Error fetching questions.";
-    if (interaction.editReply) {
-      await interaction.editReply(errorMsg);
-    } else {
-      await interaction.update({ content: errorMsg, embeds: [], components: [] });
+    
+    try {
+      await interaction.editReply({ content: errorMsg, embeds: [], components: [] });
+    } catch (editError) {
+      console.error("Failed to send error message:", editError);
     }
   }
 }
