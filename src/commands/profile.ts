@@ -96,7 +96,7 @@ async function showStatsOverview(interaction: ChatInputCommandInteraction, userI
 
   const embed = new EmbedBuilder()
     .setTitle(`📊 ${displayName} LeetCode Profile`)
-    .setColor("#1500d4ff")
+    .setColor("#ADD8E6")
     .setThumbnail(targetUser.displayAvatarURL())
     .addFields([
       {
@@ -159,7 +159,7 @@ async function showCompletionHistory(interaction: ChatInputCommandInteraction, u
   if (totalCompletions === 0) {
     const embed = new EmbedBuilder()
       .setTitle("📚 Completion History")
-      .setColor("#ffa726")
+      .setColor("#FFCCCB")
       .setDescription("No completions found. Start solving problems with `/done`!");
 
     await interaction.editReply({ embeds: [embed] });
