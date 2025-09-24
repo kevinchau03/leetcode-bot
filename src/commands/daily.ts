@@ -12,8 +12,8 @@ const DIFF_COLOR: Record<string, number> = { Easy: 0x2ecc71, Medium: 0xf1c40f, H
 
 export const data = new SlashCommandBuilder()
   .setName("daily")
-  .setDescription("Show today's daily LeetCode question.");
-  
+  .setDescription("Show today's daily LeetCode challenge.");
+
 
 export async function execute(interaction: ChatInputCommandInteraction) {
   await interaction.deferReply();

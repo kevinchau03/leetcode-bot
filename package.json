@@ -24,6 +24,7 @@
     "dayjs": "^1.11.13",
     "discord.js": "^14.21.0",
     "dotenv": "^17.2.1",
+    "leetcode-query": "^2.0.1",
     "mongodb": "^6.18.0",
     "mongoose": "^8.17.1",
     "node-cron": "^4.2.1",

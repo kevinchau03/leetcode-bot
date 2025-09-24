@@ -96,9 +96,14 @@ async function showStatsOverview(interaction: ChatInputCommandInteraction, userI
 
   const embed = new EmbedBuilder()
     .setTitle(`📊 ${displayName} LeetCode Profile`)
-    .setColor("#00d4aa")
+    .setColor("#1500d4ff")
     .setThumbnail(targetUser.displayAvatarURL())
     .addFields([
+      {
+        name: "🏆 Level",
+        value: `${profile.level}`,
+        inline: true
+      },
       { 
         name: "🔥 Streak Stats", 
         value: `**Current:** ${profile.currentStreak} days\n**Best:** ${profile.bestStreak} days`, 
