@@ -1,7 +1,18 @@
-import { REST, Routes } from "discord.js";
+import { REST, Routes, SlashCommandBuilder } from "discord.js";
 import { DISCORD_TOKEN, DISCORD_CLIENT_ID, DISCORD_GUILD_ID } from "../config";
-import fs from "fs";
-import path from "path";
+import { data as profile } from "../commands/profile";
+import { data as daily } from "../commands/daily";
+import { data as showAll } from "../commands/showAll";
+import { data as done } from "../commands/done";
+import { data as leaderboard } from "../commands/leaderboard";
+import { data as completion } from "../commands/completions";
+
+if (!DISCORD_TOKEN) {
+  throw new Error("DISCORD_TOKEN is required");
+}
+if (!DISCORD_CLIENT_ID) {
+  throw new Error("DISCORD_CLIENT_ID is required");
+}
 
 const rest = new REST({ version: "10" }).setToken(DISCORD_TOKEN);
 
@@ -27,20 +38,18 @@ async function cleanupAndDeploy() {
 
     // Step 4: Load all commands from commands directory
     console.log("📚 Loading commands...");
-    const commands = [];
-    const commandsPath = path.join(__dirname, "../commands");
-    const commandFiles = fs.readdirSync(commandsPath).filter(file => file.endsWith(".ts"));
 
-    for (const file of commandFiles) {
-      const filePath = path.join(commandsPath, file);
-      const command = await import(filePath);
-      if ("data" in command && "execute" in command) {
-        commands.push(command.data.toJSON());
-        console.log(`   ✓ Loaded ${command.data.name}`);
-      } else {
-        console.log(`   ⚠️ Skipped ${file} - missing data or execute`);
-      }
-    }
+    const commands = [
+      new SlashCommandBuilder().setName("ping").setDescription("Replies with Pong!"),
+      new SlashCommandBuilder().setName("whoami").setDescription("What is Eleet?"),
+      showAll,
+      completion,
+      daily,
+      profile,
+      done,
+      leaderboard,
+      new SlashCommandBuilder().setName("help").setDescription("Get help with the bot")
+    ].map(c => c.toJSON());
 
     console.log(`📋 Total commands loaded: ${commands.length}`);
 

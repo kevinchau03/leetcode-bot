@@ -1,10 +1,11 @@
 import "dotenv/config";
 import { REST, Routes, SlashCommandBuilder } from "discord.js";
-import { data as profile } from "./commands/profile";
-import { data as daily } from "./commands/daily";
-import { data as showAll } from "./commands/showAll";
-import { data as done } from "./commands/done";
-import { data as leaderboard } from "./commands/leaderboard";
+import { data as profile } from "../commands/profile";
+import { data as daily } from "../commands/daily";
+import { data as showAll } from "../commands/showAll";
+import { data as done } from "../commands/done";
+import { data as leaderboard } from "../commands/leaderboard";
+import { data as completion } from "../commands/completions";
 
 const token = process.env.DISCORD_TOKEN!;
 const clientId = process.env.DISCORD_CLIENT_ID!;
@@ -15,6 +16,7 @@ const commands = [
   new SlashCommandBuilder().setName("ping").setDescription("Replies with Pong!"),
   new SlashCommandBuilder().setName("whoami").setDescription("What is Eleet?"),
   showAll,
+  completion,
   daily,
   profile,
   done,
