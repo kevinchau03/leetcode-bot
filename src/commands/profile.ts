@@ -129,4 +129,6 @@ async function showStatsOverview(interaction: ChatInputCommandInteraction, userI
       { name: "🌍 Timezone", value: profile.tz, inline: true }
     ]);
   }
+
+  await interaction.editReply({ embeds: [embed] });
 }
