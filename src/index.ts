@@ -9,7 +9,7 @@ import { execute as daily } from "./commands/daily";
 import { execute as profile } from "./commands/profile";
 import { execute as done } from "./commands/done";
 import { execute as leaderboard } from "./commands/leaderboard";
-import { execute as completions } from "./commands/completions";
+import { execute as completions, handleCompletionsButton } from "./commands/completions";
 import { startCron } from "./cron/worker";
 import { cleanupAndDeploy } from "./scripts/cleanup-and-deploy";
 
@@ -111,6 +111,8 @@ client.on("interactionCreate", async (interaction: Interaction) => {
         if (customId.startsWith("allquestions_page_")) {
           const page = parseInt(customId.split("_")[2]);
           await showQuestionsPage(interaction, page);
+        } else if (customId.startsWith("completions_")) {
+          await handleCompletionsButton(interaction);
         } else {
           await interaction.reply({ content: "Unknown button interaction", ephemeral: true });
         }
