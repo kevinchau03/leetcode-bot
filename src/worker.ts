@@ -1,16 +1,18 @@
-// cron/worker.ts
-import "dotenv/config";
-import cron from "node-cron";
 import dayjs from "dayjs";
 import mongoose from "mongoose";
-import { DAILY_CHANNEL_ID, DISCORD_TOKEN, MONGODB_URI } from "../config";
+import { DAILY_CHANNEL_ID, DISCORD_TOKEN } from "../config";
 import { REST, Routes } from "discord.js";
 import { Question } from "../models/Question";
 import { DailyQuestion } from "../models/Daily";
 
 const rest = new REST({ version: "10" }).setToken(DISCORD_TOKEN);
 
-async function postDaily() {
+export async function postDaily(): Promise<void> {
+
+  if (mongoose.connection.readyState !== 1) {
+    throw new Error("Database not connected");
+  }
+
   let count = await Question.countDocuments({ active: true });
 
   if (!count) {
@@ -65,20 +67,14 @@ async function postDaily() {
   console.log(`${remainingActive} active questions remaining`);
 }
 
-export async function startCron() {
-  if (!MONGODB_URI || !DISCORD_TOKEN || !DAILY_CHANNEL_ID) {
-    throw new Error("Missing env: MONGODB_URI / DISCORD_TOKEN / DAILY_CHANNEL_ID");
-  }
+export async function dailyReminder(): Promise<void> {
+    // Placeholder for daily reminder logic
+    const msg = `This is your daily reminder to complete today's LeetCode challenge! Don't forget to log your progress using the /done command. Keep pushing towards becoming elite! 💪`;
 
-  // connect if not already connected
-  if (mongoose.connection.readyState === 0) {
-    await mongoose.connect(MONGODB_URI);
-    console.log("✅ Cron worker connected to MongoDB");
-  }
-  cron.schedule("45 12 * * *", postDaily, { timezone: "America/Toronto" });
-  console.log("⏰ Cron scheduled for 12:45 America/Toronto");
+    await rest.post(Routes.channelMessages(DAILY_CHANNEL_ID as string), {
+        body: { content: msg },
+    });
 
-  process.on("SIGTERM", () => {
-    console.log("SIGTERM — cron worker stopping");
-  });
+    console.log("Posted daily reminder");
+
 }
