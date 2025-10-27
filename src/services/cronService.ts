@@ -1,13 +1,14 @@
-import * as cron from "node-cron";
-import { postDaily, dailyReminder } from "../worker";
+import cron, { ScheduledTask } from "node-cron";
+import { postDaily, dailyReminder } from "../worker"
 
 
 interface CronJob {
   name: string;
   schedule: string;
-  task: cron.ScheduledTask;
+  task: ScheduledTask;
   timezone?: string;
 }
+
 
 class CronService {
   private jobs: Map<string, CronJob> = new Map();
@@ -53,8 +54,7 @@ class CronService {
         console.error(`❌ Error in scheduled job ${name}:`, error);
       }
     }, { 
-      timezone,
-      scheduled: true
+      timezone
     });
 
     this.jobs.set(name, { name, schedule, task, timezone });
@@ -88,34 +88,43 @@ class CronService {
     }
   }
 
-  public restartJob(name: string): boolean {
+  public async restartJob(name: string): Promise<boolean> {
     const job = this.jobs.get(name);
-    if (job) {
-      job.task.stop();
-      job.task.start();
-      console.log(`🔄 Restarted job: ${name}`);
-      return true;
-    }
-    return false;
+    if (!job) return false;
+    await job.task.stop();
+    await job.task.destroy();     // fully tear down
+    this.jobs.delete(name);
+    return true;
   }
 
-  public getJobStatus(): { name: string; schedule: string; running: boolean; timezone?: string }[] {
-    return Array.from(this.jobs.values()).map(job => ({
+  public async getJobStatus(): Promise<
+    { name: string; schedule: string; status: string; nextRun: Date | null; timezone?: string }[]
+  > {
+    const jobs = Array.from(this.jobs.values());
+    return Promise.all(jobs.map(async (job) => ({
       name: job.name,
       schedule: job.schedule,
-      running: job.task.running,
+      status: await job.task.getStatus(),  // 'running' | 'idle' | 'stopped' | 'destroyed'
+      nextRun: job.task.getNextRun(),
       timezone: job.timezone
-    }));
+    })));
   }
 
-  private logScheduledJobs(): void {
-    console.log("\n📋 Scheduled Jobs:");
-    this.getJobStatus().forEach(job => {
-      const status = job.running ? "🟢 RUNNING" : "🔴 STOPPED";
-      console.log(`  ${status} ${job.name}: ${job.schedule} (${job.timezone})`);
-    });
-    console.log("");
+
+  private async logScheduledJobs(): Promise<void> {
+  console.log("\n📋 Scheduled Jobs:");
+  const statuses = await this.getJobStatus();
+  for (const job of statuses) {
+    const badge =
+      job.status === "running"  ? "🟢 RUNNING"  :
+      job.status === "idle"     ? "🟡 IDLE"     :
+      job.status === "stopped"  ? "🔴 STOPPED"  : "⚫ DESTROYED";
+    const next = job.nextRun ? ` next: ${job.nextRun.toISOString()}` : "";
+    console.log(`  ${badge} ${job.name}: ${job.schedule} (${job.timezone})${next}`);
   }
+  console.log("");
+}
+
 
   public destroy(): void {
     this.stopAllJobs();
