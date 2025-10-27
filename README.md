@@ -7,18 +7,18 @@ A Discord bot that helps users track daily LeetCode practice with streaks, autom
 - 📅 **Daily Questions** - Automatically posts new LeetCode questions daily
 - 🔥 **Streak Tracking** - Track your daily coding streaks
 - 📊 **Profile Stats** - View personal progress and statistics  
-- 🤖 **Smart Question Rotation** - Never repeat questions until all are used
 - 🌍 **Timezone Support** - Respects user timezones
 - 👥 **Public Progress** - Share achievements with your server
 
 ## Commands
 
+- `/completions` - View all completed questions
 - `/daily` - View today's LeetCode question
 - `/done [tz] [solution] [time] [notes]` - Mark today's question as completed
 - `/profile` - View your streak and stats
 - `/allquestions` - Browse available questions
-- `/ping` - Check bot status
 - `/leaderboard` - View the leaderboard
+
 
 ## Setup
 
