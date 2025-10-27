@@ -1,9 +1,9 @@
 import dayjs from "dayjs";
 import mongoose from "mongoose";
-import { DAILY_CHANNEL_ID, DISCORD_TOKEN } from "../config";
+import { DAILY_CHANNEL_ID, DISCORD_TOKEN } from "./config";
 import { REST, Routes } from "discord.js";
-import { Question } from "../models/Question";
-import { DailyQuestion } from "../models/Daily";
+import { Question } from "./models/Question";
+import { DailyQuestion } from "./models/Daily";
 
 const rest = new REST({ version: "10" }).setToken(DISCORD_TOKEN);
 

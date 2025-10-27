@@ -1,4 +1,4 @@
-import cron from "node-cron";
+import * as cron from "node-cron";
 import { postDaily, dailyReminder } from "../worker";
 
 
@@ -53,12 +53,11 @@ class CronService {
         console.error(`❌ Error in scheduled job ${name}:`, error);
       }
     }, { 
-      scheduled: false, // Don't start immediately
-      timezone 
+      timezone,
+      scheduled: true
     });
 
     this.jobs.set(name, { name, schedule, task, timezone });
-    task.start();
     console.log(`📅 Scheduled job "${name}" at ${schedule} (${timezone})`);
   }
 
