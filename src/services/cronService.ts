@@ -26,7 +26,7 @@ class CronService {
       // Schedule message reminder every 2 hours
       this.scheduleJob(
         "reminder-message",
-        "0 */2 * * *", // Every 2 hours
+        "0 */12 * * *", // Every 12 hours
         dailyReminder,
         "America/Toronto"
       );

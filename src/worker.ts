@@ -69,7 +69,7 @@ export async function postDaily(): Promise<void> {
 
 export async function dailyReminder(): Promise<void> {
     // Placeholder for daily reminder logic
-    const msg = `This is your daily reminder to complete today's LeetCode challenge! Don't forget to log your progress using the /done command. Keep pushing towards becoming elite! 💪`;
+    const msg = `Just a friendly reminder to do your Leetcode today! If you do not want to end up jobless, that is. Use /daily to get today's question!`;
 
     await rest.post(Routes.channelMessages(DAILY_CHANNEL_ID as string), {
         body: { content: msg },

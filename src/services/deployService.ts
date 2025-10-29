@@ -26,6 +26,14 @@ export async function initializeDeployService(): Promise<void> {
     if (!DISCORD_GUILD_ID) {
       throw new Error("❌ DISCORD_GUILD_ID is required");
     }
+
+    // Clear existing commands first
+    console.log("🧹 Clearing existing commands...");
+    await rest.put(
+      Routes.applicationGuildCommands(DISCORD_CLIENT_ID, DISCORD_GUILD_ID),
+      { body: [] }
+    );
+    console.log("✅ Existing commands cleared");
     
     console.log("🔄 Registering commands to guild...");
     await rest.put(
