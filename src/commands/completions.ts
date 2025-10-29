@@ -9,6 +9,8 @@ export const data = new SlashCommandBuilder()
 export async function execute(interaction: ChatInputCommandInteraction) {
   try {
 
+    await interaction.deferReply();
+
     const userId = interaction.user.id;
     const guildId = interaction.guildId!;
     
